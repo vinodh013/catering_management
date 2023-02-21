@@ -1,8 +1,15 @@
 import 'package:catering_management/features/recipe/add_recipe.dart';
+import 'package:catering_management/models/dish.dart';
+import 'package:catering_management/models/ingredient.dart';
 import 'package:catering_management/widgets/searchbox.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_adaptive_scaffold/flutter_adaptive_scaffold.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:isar/isar.dart';
 import 'package:multi_split_view/multi_split_view.dart';
+
+import '../../provider/isar.dart';
+
 
 class RecipeScreen extends StatelessWidget {
   const RecipeScreen({super.key});
@@ -10,7 +17,6 @@ class RecipeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      drawer: Drawer(),
       endDrawer: Drawer(width: 500, child: AddRecipe()),
       body: AdaptiveLayout(
         body: SlotLayout(config: {
@@ -33,14 +39,14 @@ class RecipeScreen extends StatelessWidget {
   }
 }
 
-class RecipesList extends StatefulWidget {
+class RecipesList extends ConsumerStatefulWidget {
   const RecipesList({super.key});
 
   @override
-  State<RecipesList> createState() => _RecipesListState();
+  ConsumerState<RecipesList> createState() => _RecipesListState();
 }
 
-class _RecipesListState extends State<RecipesList> {
+class _RecipesListState extends ConsumerState<RecipesList> {
   final ScrollController _scrollController = ScrollController();
 
   @override
@@ -48,6 +54,14 @@ class _RecipesListState extends State<RecipesList> {
     _scrollController.dispose();
     super.dispose();
   }
+
+  // addDish() async {
+  //  var isar = await ref.read(isarProvider);
+
+  //  isar.
+
+
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -62,7 +76,7 @@ class _RecipesListState extends State<RecipesList> {
             mainAxisAlignment: MainAxisAlignment.start,
             children: const [
               Text(
-                "Recipe's",
+                "Dishes",
                 style: TextStyle(
                     fontSize: 26,
                     fontWeight: FontWeight.bold,
@@ -83,7 +97,7 @@ class _RecipesListState extends State<RecipesList> {
               const Text('Total : 10'),
               TextButton.icon(
                 onPressed: () {
-                  Scaffold.of(context).openDrawer();
+                  Scaffold.of(context).openEndDrawer();
                 },
                 icon: const Icon(Icons.add),
                 label: const Text('Add recipe'),
@@ -93,6 +107,9 @@ class _RecipesListState extends State<RecipesList> {
           const SizedBox(
             height: 20,
           ),
+
+
+
           Flexible(
             child: SingleChildScrollView(
               child: ListView.builder(
@@ -116,30 +133,183 @@ class _RecipesListState extends State<RecipesList> {
   }
 }
 
-class IngredientList extends StatefulWidget {
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+class IngredientList extends ConsumerStatefulWidget {
   const IngredientList({super.key});
 
   @override
-  State<IngredientList> createState() => _IngredientListState();
+  ConsumerState<IngredientList> createState() => _IngredientListState();
 }
 
-class _IngredientListState extends State<IngredientList> {
+class _IngredientListState extends ConsumerState<IngredientList> {
+  TextEditingController ingredientName = TextEditingController();
+  TextEditingController ingredientCategory = TextEditingController();
+
+ 
+
+  addIngredients(String name, String category) async {
+    var isar = await ref.read(isarProvider);
+
+    var newIngredient = Ingredient(name: name, category: category);
+
+    isar.writeTxn(() async {
+      await isar.ingredients.put(newIngredient);
+    });
+  }
+
+  Future<List<Ingredient>> getingredients() async {
+    var isar = await ref.read(isarProvider);
+
+    var ingredient = isar.ingredients.where().findAll();
+
+    return ingredient;
+  }
+
+  var v = false;
+  var s = true;
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
         const SizedBox(
-          height: 10,
+          height: 25,
         ),
         Row(
-          children: const [
-            Text("Ingredient's",
-                style: TextStyle(
-                    fontSize: 26,
-                    fontWeight: FontWeight.bold,
-                    color: Color.fromARGB(85, 155, 39, 176))),
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Text(
+              "Ingredient's",
+              style: TextStyle(
+                fontSize: 26,
+                fontWeight: FontWeight.bold,
+                color: Color.fromARGB(85, 155, 39, 176),
+              ),
+            ),
+            TextButton(
+                onPressed: () {
+                  setState(() {
+                    v = true;
+                    s = false;
+                  });
+                },
+                child: Text('Add'))
           ],
         ),
+        const SizedBox(
+          height: 20,
+        ),
+        Visibility(
+            visible: v,
+            child: Container(
+              height: 200,
+              child: Column(
+                children: [
+                  TextFormField(
+                    controller: ingredientName,
+                    decoration: InputDecoration(
+                        hintText: 'Ingredient Name',
+                        border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10))),
+                  ),
+                  const SizedBox(
+                    height: 15,
+                  ),
+                  TextFormField(
+                    controller: ingredientCategory,
+                    decoration: InputDecoration(
+                      hintText: 'Ingredient Category',
+                      border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10)),
+                    ),
+                  ),
+                  const SizedBox(
+                    height: 15,
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      TextButton(
+                        onPressed: () async {
+                          await addIngredients(
+                              ingredientName.text, ingredientCategory.text);
+                          setState(() {
+                            v = false;
+                            s = true;
+                          });
+                        },
+                        child: const Text('Save'),
+                      ),
+                      TextButton(
+                        onPressed: () {},
+                        child: const Text('clear'),
+                      )
+                    ],
+                  )
+                ],
+              ),
+            )),
+        Visibility(
+          visible: s,
+          child: Container(
+              decoration: const BoxDecoration(
+                  border: Border(top: BorderSide(color: Colors.grey))),
+              child: TextFormField()),
+        ),
+        FutureBuilder(
+          future: getingredients(),
+          builder: (context, snapshot) {
+            if (snapshot.hasData) {
+              return Expanded(
+                child: SingleChildScrollView(
+                  child: ListView.builder(
+                    shrinkWrap: true,
+                    itemCount: snapshot.data!.length,
+                    itemBuilder: (context, index) {
+                      return ListTile(
+                        onTap: () {
+                           
+                        },
+                        title: Text(snapshot.data![index].name),
+                      );
+                    },
+                  ),
+                ),
+              );
+            }
+
+            return const Center(
+              child: Text('No Ingredient'),
+            );
+          },
+        )
       ],
     );
   }

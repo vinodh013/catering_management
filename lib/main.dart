@@ -1,11 +1,13 @@
 import 'package:catering_management/routes/routes.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_adaptive_scaffold/flutter_adaptive_scaffold.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(   ProviderScope(child:  MyApp()));
 }
+
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
